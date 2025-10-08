@@ -1,4 +1,4 @@
-Of course! Let's apply the Pareto Principle (the 80/20 rule) to learning Express.js.
+Express.js.
 
 The Pareto Principle states that roughly **80% of the results come from 20% of the efforts**. In our context, this means we can get a fully functional, production-ready server by understanding a surprisingly small set of core concepts.
 
