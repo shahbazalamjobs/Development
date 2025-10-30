@@ -20,7 +20,6 @@ Here’s a shorter, simpler version:
 
 Absolutely 👍 — here’s a **clear, practical roadmap** of what to learn for a **high-paying full-stack job using the PERN stack** (PostgreSQL, Express, React, Node.js).
 
----
 
 ## 🧱 1. Core PERN Stack (Foundation)
 
