@@ -1,5 +1,3 @@
-Perfect — you’re aiming to become **strong in backend with Node.js + Express**, not just to code but to **solve any real-world backend problem and ace interviews**.
-Here’s a **complete, detailed roadmap** (step-by-step) that builds **skills + practical problem-solving + interview readiness**.
 
 ---
 
