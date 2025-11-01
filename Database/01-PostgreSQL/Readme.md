@@ -1,10 +1,4 @@
-Perfect — let’s narrow this down smartly.
 
-If you’re aiming for **backend developer interviews (with ~2 years experience)**, you don’t need DBA-level knowledge. You need the **core practical + moderately advanced** PostgreSQL topics that companies test for **real-world backend usage, query writing, and optimization.**
-
-Here’s the **80/20 list** of **PostgreSQL topics most asked in backend developer interviews** — ordered from **beginner → intermediate → interview-critical**.
-
----
 
 ## 🧩 1. **Database Fundamentals (must know)**
 
