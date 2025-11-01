@@ -1,203 +1,342 @@
+# SQL Basics - Essential for Coding Interviews
+
+## CRUD Operations
+
+### **SELECT** - Reading Data
+**Explanation:** Retrieves data from one or more tables. This is the most fundamental SQL operation.
+
+```sql
+-- Basic SELECT
+SELECT * FROM employees;  -- Get all columns from employees table
+
+-- Selecting specific columns
+SELECT name, email, salary FROM employees;
+
+-- With expressions
+SELECT name, salary, salary * 1.1 AS increased_salary FROM employees;
+```
+
+### **INSERT** - Adding New Data
+**Explanation:** Adds new rows to a table.
+
+```sql
+-- Insert single row
+INSERT INTO employees (name, email, salary, hire_date) 
+VALUES ('John Doe', 'john@email.com', 50000, '2023-01-15');
+
+-- Insert multiple rows
+INSERT INTO employees (name, email, salary) 
+VALUES 
+    ('Jane Smith', 'jane@email.com', 60000),
+    ('Bob Wilson', 'bob@email.com', 55000);
+
+-- Insert with default values
+INSERT INTO employees (name, email) VALUES ('Alice Brown', 'alice@email.com');
+```
+
+### **UPDATE** - Modifying Existing Data
+**Explanation:** Modifies existing rows in a table.
+
+```sql
+-- Update all rows (be careful!)
+UPDATE employees SET salary = salary * 1.05;
+
+-- Update specific rows
+UPDATE employees 
+SET salary = 65000, department = 'Engineering' 
+WHERE name = 'John Doe';
 
+-- Update with conditions
+UPDATE employees 
+SET salary = salary * 1.10 
+WHERE department = 'Sales' AND hire_date < '2020-01-01';
+```
+
+### **DELETE** - Removing Data
+**Explanation:** Removes rows from a table.
 
-## 🧩 1. **Database Fundamentals (must know)**
+```sql
+-- Delete specific rows
+DELETE FROM employees WHERE id = 5;
 
-*(Foundational questions + simple coding tasks)*
+-- Delete with conditions
+DELETE FROM employees 
+WHERE department = 'Temp' AND hire_date < '2022-01-01';
+
+-- Delete all rows (DANGEROUS!)
+DELETE FROM employees;  -- Removes all data but keeps table structure
+```
 
-* What is a **database**, **table**, **row**, **column**
-* **Primary key**, **Foreign key**, **Unique key**
-* **Data types** (INTEGER, SERIAL, VARCHAR, TEXT, BOOLEAN, DATE, JSONB)
-* **NULL vs NOT NULL**
-* **DEFAULT** values
-* **Constraints**: `PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`, `DEFAULT`
+## Filtering with WHERE Clause
 
----
-
-## ⚙️ 2. **SQL Basics (most asked in coding rounds)**
-
-* CRUD operations: `SELECT`, `INSERT`, `UPDATE`, `DELETE`
-* Filtering: `WHERE`, `AND`, `OR`, `IN`, `BETWEEN`, `LIKE`, `ILIKE`
-* Sorting: `ORDER BY`
-* Limiting results: `LIMIT`, `OFFSET` (for pagination)
-* Aliases: `AS` (column/table alias)
-* `DISTINCT` and removing duplicates
-
----
-
-## 🔗 3. **Joins (Top 3 most frequently asked area)**
-
-*(Used heavily in real projects and interviews)*
-
-* `INNER JOIN`
-* `LEFT JOIN`
-* `RIGHT JOIN`
-* `FULL OUTER JOIN`
-* Joining **multiple tables**
-* Join on **foreign keys**
-* Difference between **INNER JOIN** and **LEFT JOIN**
-
-👉 Example interview question:
-
-> Get all users with their total number of orders (even if they have none).
-
----
-
-## 📊 4. **Aggregations & Grouping**
-
-*(Always tested in SQL query questions)*
-
-* Aggregate functions: `COUNT()`, `SUM()`, `AVG()`, `MIN()`, `MAX()`
-* `GROUP BY`
-* `HAVING` (difference from `WHERE`)
-* Combining joins + aggregates (most common in tasks)
-
-👉 Example:
-
-> Find total sales per user where total > 1000.
-
----
-
-## 🧱 5. **Database Relationships**
-
-*(Backend interviews often test data modeling)*
-
-* One-to-One, One-to-Many, Many-to-Many
-* Setting up **foreign keys**
-* Cascade delete/update (`ON DELETE CASCADE`)
-* Example schema: `users`, `posts`, `comments`, `orders`, etc.
-
-👉 Common question:
-
-> Design a DB schema for users and their posts/comments.
-
----
-
-## ⚡ 6. **Indexes & Query Optimization (important after 1 year exp)**
-
-* What is an **index** and why it improves query speed
-* **B-tree** index (default)
-* When indexes **don’t help** (e.g. small tables, low selectivity)
-* `EXPLAIN` and `EXPLAIN ANALYZE` basics
-* Avoiding `SELECT *`
-
-👉 Typical question:
-
-> How do you find why a query is slow and how to optimize it?
-
----
-
-## 🧠 7. **Transactions & ACID**
-
-*(Every backend dev must understand this conceptually)*
-
-* What are **Transactions**
-* Commands: `BEGIN`, `COMMIT`, `ROLLBACK`
-* **ACID properties**
-* Example: order placement with multiple steps
-* Concept of **rollback on failure**
-
-👉 Interview question:
-
-> Why use transactions in backend operations like payments?
-
----
-
-## 💾 8. **Constraints & Data Integrity**
-
-* `NOT NULL`, `UNIQUE`, `CHECK`
-* Foreign key constraint behavior
-* Preventing bad data via constraints
-
----
-
-## 🧩 9. **Subqueries & CTEs**
-
-*(Common in mid-level SQL questions)*
-
-* Subqueries in `WHERE` and `FROM`
-* **Common Table Expressions (CTEs)** using `WITH`
-* Example:
-
-  ```sql
-  WITH total_orders AS (
-    SELECT user_id, COUNT(*) AS order_count
-    FROM orders
-    GROUP BY user_id
-  )
-  SELECT u.name, t.order_count
-  FROM users u
-  JOIN total_orders t ON u.id = t.user_id;
-  ```
-
----
-
-## 🔐 10. **Security & SQL Injection Prevention**
-
-* Why **parameterized queries** are important
-* Don’t use string concatenation in SQL
-* Roles & privileges (basic understanding)
-
----
-
-## 🧰 11. **JSON & JSONB (Frequently asked in modern projects)**
-
-* Difference between `json` and `jsonb`
-* Access operators: `->`, `->>`, `#>`
-* Filtering JSON data using `@>`
-* Use case: store metadata, user preferences, settings
-
-👉 Example question:
-
-> Query users where `settings->>'theme' = 'dark'`
-
----
-
-## 🔄 12. **Database Design & Normalization**
-
-* **1NF**, **2NF**, **3NF** (and why denormalization sometimes needed)
-* Real-world schema design for simple app (users, orders, products)
-* Importance of relationships + indexes
-
----
-
-## 🚀 13. **Backend Integration Concepts**
-
-* Using PostgreSQL with Node.js (`pg` or ORM like Prisma/Sequelize/Knex)
-* **Connection pooling**
-* **Environment variables** for DB connection (`.env`)
-* Handling errors & async queries
-* Using **transactions in code**
-
-👉 Example:
-
-> How do you handle DB connection failures in your Node backend?
-
----
-
-## 🔍 Optional but Nice-to-Know (bonus for strong impression)
-
-* **Views** and **Materialized Views**
-* **Triggers** (basic awareness)
-* **Stored Procedures / Functions** for reusable logic
-* **Migrations** (with ORM tools)
-* **Backup / Restore** (`pg_dump`, `pg_restore`)
-
----
-
-## 🧭 TL;DR — 80/20 PostgreSQL Interview Core Topics
-
-✅ SQL CRUD & filtering
-✅ Joins (Inner, Left, Full)
-✅ Group By + Having
-✅ Relationships & Foreign Keys
-✅ Indexing & Performance basics
-✅ Transactions + ACID
-✅ Constraints + Data integrity
-✅ Subqueries & CTEs
-✅ JSONB usage
-✅ Node.js integration with PostgreSQL
-
----
-
-Would you like me to give you a **list of the 20 most common SQL interview questions** (and how to answer/write the queries) specifically for backend devs with ~2 years experience?
-That would give you a direct practice path.
+### **Basic WHERE**
+```sql
+SELECT * FROM employees WHERE salary > 50000;
+```
+
+### **AND / OR Operators**
+```sql
+-- AND: Both conditions must be true
+SELECT * FROM employees 
+WHERE department = 'Engineering' AND salary > 70000;
+
+-- OR: Either condition can be true
+SELECT * FROM employees 
+WHERE department = 'Sales' OR department = 'Marketing';
+
+-- Combining AND/OR with parentheses
+SELECT * FROM employees 
+WHERE (department = 'Engineering' OR department = 'IT') 
+AND salary > 60000;
+```
+
+### **IN Operator**
+**Explanation:** Checks if a value matches any value in a list.
+
+```sql
+-- Multiple OR conditions simplified
+SELECT * FROM employees 
+WHERE department IN ('Sales', 'Marketing', 'HR');
+
+-- With subquery
+SELECT * FROM employees 
+WHERE department IN (SELECT name FROM departments WHERE active = true);
+
+-- NOT IN
+SELECT * FROM employees 
+WHERE department NOT IN ('Temp', 'Intern');
+```
+
+### **BETWEEN Operator**
+**Explanation:** Checks if a value is within a range (inclusive).
+
+```sql
+-- Numeric range
+SELECT * FROM employees 
+WHERE salary BETWEEN 40000 AND 80000;
+
+-- Date range
+SELECT * FROM employees 
+WHERE hire_date BETWEEN '2020-01-01' AND '2023-12-31';
+
+-- NOT BETWEEN
+SELECT * FROM employees 
+WHERE salary NOT BETWEEN 30000 AND 50000;
+```
+
+### **LIKE and ILIKE Operators**
+**Explanation:** Pattern matching in strings. LIKE is case-sensitive, ILIKE is case-insensitive.
+
+```sql
+-- % matches any sequence of characters
+SELECT * FROM employees WHERE name LIKE 'J%';  -- Names starting with J
+SELECT * FROM employees WHERE email LIKE '%@gmail.com';  -- Gmail addresses
+
+-- _ matches exactly one character
+SELECT * FROM employees WHERE name LIKE 'J_n';  -- Jen, Jon, Jan, etc.
+
+-- ILIKE (case-insensitive)
+SELECT * FROM employees WHERE name ILIKE 'john%';  -- John, john, JOHN, etc.
+
+-- Complex patterns
+SELECT * FROM employees 
+WHERE name LIKE 'A%e' OR name LIKE 'B%n';
+```
+
+## Sorting with ORDER BY
+
+### **Basic Sorting**
+```sql
+-- Single column ascending (ASC is default)
+SELECT * FROM employees ORDER BY name;
+SELECT * FROM employees ORDER BY name ASC;
+
+-- Single column descending
+SELECT * FROM employees ORDER BY salary DESC;
+
+-- Multiple columns
+SELECT * FROM employees 
+ORDER BY department ASC, salary DESC;  -- Sort by department, then by salary high to low
+
+-- Using column positions
+SELECT name, department, salary FROM employees 
+ORDER BY 2, 3 DESC;  -- Sort by 2nd column (department), then 3rd (salary)
+```
+
+## Limiting Results
+
+### **LIMIT**
+**Explanation:** Restricts the number of rows returned.
+
+```sql
+-- Get top 10 highest paid employees
+SELECT * FROM employees 
+ORDER BY salary DESC 
+LIMIT 10;
+
+-- With WHERE clause
+SELECT * FROM employees 
+WHERE department = 'Engineering' 
+ORDER BY hire_date 
+LIMIT 5;
+```
+
+### **OFFSET**
+**Explanation:** Skips a specified number of rows before returning results.
+
+```sql
+-- Pagination: Get rows 11-20
+SELECT * FROM employees 
+ORDER BY name 
+LIMIT 10 OFFSET 10;  -- Skip first 10, get next 10
+
+-- Common pagination pattern
+SELECT * FROM employees 
+ORDER BY id 
+LIMIT 10 OFFSET 20;  -- Page 3 (rows 21-30)
+```
+
+### **Pagination Formula**
+```sql
+-- For page number P with page size S:
+-- LIMIT S OFFSET (P-1)*S
+
+-- Example: Page 4 with 25 records per page
+SELECT * FROM employees 
+ORDER BY name 
+LIMIT 25 OFFSET 75;  -- (4-1)*25 = 75
+```
+
+## Aliases with AS
+
+### **Column Aliases**
+**Explanation:** Give temporary names to columns in the result set.
+
+```sql
+-- Basic column aliases
+SELECT 
+    name AS employee_name,
+    salary AS annual_salary,
+    salary/12 AS monthly_salary
+FROM employees;
+
+-- Without AS keyword (also works)
+SELECT 
+    name employee_name,
+    salary annual_salary
+FROM employees;
+
+-- Aliases with expressions
+SELECT 
+    name,
+    salary,
+    (salary * 1.1) AS projected_salary,
+    CONCAT(name, ' - ', department) AS employee_info
+FROM employees;
+```
+
+### **Table Aliases**
+**Explanation:** Give temporary names to tables, especially useful in joins.
+
+```sql
+-- Single table alias
+SELECT e.name, e.department, e.salary 
+FROM employees AS e
+WHERE e.salary > 50000;
+
+-- Without AS keyword
+SELECT e.name, e.department
+FROM employees e
+WHERE e.department = 'Engineering';
+```
+
+## DISTINCT - Removing Duplicates
+
+### **Basic DISTINCT**
+```sql
+-- Get unique departments
+SELECT DISTINCT department FROM employees;
+
+-- Get unique combinations
+SELECT DISTINCT department, location FROM employees;
+
+-- COUNT of distinct values
+SELECT COUNT(DISTINCT department) FROM employees;
+```
+
+### **DISTINCT vs GROUP BY**
+```sql
+-- These are often equivalent:
+SELECT DISTINCT department FROM employees;
+SELECT department FROM employees GROUP BY department;
+
+-- But DISTINCT works on entire rows, GROUP BY can aggregate
+SELECT department, COUNT(*) 
+FROM employees 
+GROUP BY department;  -- Can't do this with DISTINCT
+```
+
+## Practical Examples Combining Concepts
+
+### **Complex Query Example**
+```sql
+-- "Get the top 5 highest paid active employees in Engineering or IT departments, 
+-- showing their name, email, and monthly salary, sorted by salary descending"
+SELECT 
+    name AS employee_name,
+    email AS contact_email,
+    salary/12 AS monthly_salary,
+    department
+FROM employees
+WHERE 
+    department IN ('Engineering', 'IT')
+    AND active = true
+    AND salary IS NOT NULL
+ORDER BY salary DESC
+LIMIT 5;
+```
+
+### **Pagination for UI**
+```sql
+-- Common pattern for web applications
+SELECT 
+    id,
+    name,
+    email,
+    department,
+    salary
+FROM employees
+WHERE 
+    department = 'Sales'
+    AND hire_date >= '2020-01-01'
+ORDER BY name ASC
+LIMIT 20 OFFSET 40;  -- Page 3 with 20 records per page
+```
+
+### **Data Analysis Queries**
+```sql
+-- Unique values analysis
+SELECT 
+    COUNT(*) AS total_employees,
+    COUNT(DISTINCT department) AS unique_departments,
+    COUNT(DISTINCT location) AS unique_locations
+FROM employees;
+
+-- Pattern matching for data cleanup
+SELECT 
+    name,
+    email
+FROM employees
+WHERE email NOT LIKE '%@%.%'  -- Find invalid email patterns
+   OR name LIKE '% % %';       -- Names with more than 2 spaces
+```
+
+## Common Interview Patterns
+
+1. **Filtering and Sorting**: WHERE + ORDER BY + LIMIT
+2. **Pagination**: LIMIT + OFFSET
+3. **Data Quality**: DISTINCT + COUNT for uniqueness checks
+4. **Pattern Matching**: LIKE/ILIKE for text searches
+5. **Range Queries**: BETWEEN for dates and numbers
+
+These SQL basics form the foundation for 80% of real-world database queries and are essential for technical interviews. Practice combining these concepts to solve complex data retrieval problems efficiently.
