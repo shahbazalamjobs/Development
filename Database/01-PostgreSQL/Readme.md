@@ -1,7 +1,4 @@
 
-
-I'll provide detailed explanations for each database concept with practical examples and why they're important.
-
 ## Core Database Components
 
 ### **Database**
