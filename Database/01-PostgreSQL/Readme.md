@@ -977,3 +977,562 @@ JOIN users b ON a.email = b.email AND a.id < b.id;  -- Finds duplicates
 
 ---
 
+
+
+--- 
+
+
+# Database Relationships & Data Modeling
+
+## Types of Database Relationships
+
+### **One-to-One Relationship**
+**Explanation:** One record in Table A relates to exactly one record in Table B, and vice versa.
+
+```sql
+-- Example: User and UserProfile (each user has one profile)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE NOT NULL,  -- UNIQUE ensures one-to-one
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    date_of_birth DATE,
+    bio TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Query with one-to-one join
+SELECT u.username, up.first_name, up.last_name, up.bio
+FROM users u
+INNER JOIN user_profiles up ON u.id = up.user_id;
+```
+
+**Common Use Cases:**
+- User ↔ UserProfile
+- Product ↔ ProductDetails
+- Employee ↔ EmployeeConfidentialData
+
+### **One-to-Many Relationship**
+**Explanation:** One record in Table A relates to many records in Table B, but each record in Table B relates to only one record in Table A.
+
+```sql
+-- Example: User and Posts (one user can have many posts)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,  -- Foreign key to users
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Query: Get all posts by a specific user
+SELECT u.username, p.title, p.created_at
+FROM users u
+INNER JOIN posts p ON u.id = p.user_id
+WHERE u.username = 'john_doe'
+ORDER BY p.created_at DESC;
+```
+
+**Common Use Cases:**
+- Customer ↔ Orders
+- Department ↔ Employees
+- Category ↔ Products
+
+### **Many-to-Many Relationship**
+**Explanation:** Records in Table A can relate to many records in Table B, and vice versa. Requires a junction table.
+
+```sql
+-- Example: Students and Courses (students can take many courses, courses have many students)
+CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(20) UNIQUE NOT NULL
+);
+
+-- Junction table for many-to-many relationship
+CREATE TABLE student_courses (
+    student_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    grade DECIMAL(3,2),
+    PRIMARY KEY (student_id, course_id),  -- Composite primary key
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
+-- Query: Get all courses for a student with their grades
+SELECT s.name AS student_name, c.name AS course_name, sc.grade
+FROM students s
+INNER JOIN student_courses sc ON s.id = sc.student_id
+INNER JOIN courses c ON sc.course_id = c.id
+WHERE s.name = 'Alice Johnson';
+
+-- Query: Count students per course
+SELECT c.name AS course_name, COUNT(sc.student_id) AS student_count
+FROM courses c
+LEFT JOIN student_courses sc ON c.id = sc.course_id
+GROUP BY c.id, c.name
+ORDER BY student_count DESC;
+```
+
+**Common Use Cases:**
+- Students ↔ Courses
+- Products ↔ Tags
+- Users ↔ Groups
+- Books ↔ Authors
+
+## Setting Up Foreign Keys
+
+### **Basic Foreign Key Syntax:**
+```sql
+-- Method 1: Inline definition
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    total_amount DECIMAL(10,2)
+);
+
+-- Method 2: Separate constraint (more explicit)
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    total_amount DECIMAL(10,2),
+    CONSTRAINT fk_orders_users 
+        FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Method 3: Adding foreign key after table creation
+ALTER TABLE orders 
+ADD CONSTRAINT fk_orders_users 
+FOREIGN KEY (user_id) REFERENCES users(id);
+```
+
+## Cascade Delete/Update Options
+
+### **ON DELETE Options:**
+```sql
+-- 1. CASCADE: Delete related records when parent is deleted
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(200),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    -- If user is deleted, all their posts are automatically deleted
+);
+
+-- 2. SET NULL: Set foreign key to NULL when parent is deleted
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    title VARCHAR(200),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    -- If user is deleted, user_id becomes NULL (requires nullable column)
+);
+
+-- 3. RESTRICT: Prevent deletion if related records exist (default)
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(200),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
+    -- Cannot delete user if they have posts
+);
+
+-- 4. NO ACTION: Similar to RESTRICT
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(200),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE NO ACTION
+);
+```
+
+### **ON UPDATE Options:**
+```sql
+-- CASCADE: Update foreign key when primary key changes
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(200),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE
+    -- If user.id changes, posts.user_id automatically updates
+);
+```
+
+## 👉 **Common Interview Question Solution:**
+
+**Problem:** "Design a DB schema for users and their posts/comments"
+
+```sql
+-- Complete Social Media Schema
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    slug VARCHAR(300) UNIQUE NOT NULL,
+    status VARCHAR(20) DEFAULT 'published', -- published, draft, archived
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    published_at TIMESTAMP,
+    view_count INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    parent_comment_id INTEGER, -- For nested comments (self-referencing)
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_approved BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE
+);
+
+-- Many-to-many: Post likes
+CREATE TABLE post_likes (
+    user_id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, post_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
+-- Many-to-many: Tags for posts
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE post_tags (
+    post_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+
+-- Indexes for better performance
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+CREATE INDEX idx_comments_user_id ON comments(user_id);
+CREATE INDEX idx_comments_parent_id ON comments(parent_comment_id);
+```
+
+**Example Queries for the Schema:**
+```sql
+-- Get all posts with author info and comment count
+SELECT 
+    p.title,
+    p.content,
+    u.username AS author,
+    p.created_at,
+    COUNT(DISTINCT c.id) AS comment_count,
+    COUNT(DISTINCT pl.user_id) AS like_count
+FROM posts p
+INNER JOIN users u ON p.user_id = u.id
+LEFT JOIN comments c ON p.id = c.post_id AND c.is_approved = true
+LEFT JOIN post_likes pl ON p.id = pl.post_id
+WHERE p.status = 'published'
+GROUP BY p.id, u.username
+ORDER BY p.created_at DESC;
+
+-- Get nested comments for a post
+SELECT 
+    c.id,
+    c.content,
+    u.username AS commenter,
+    c.created_at,
+    pc.content AS parent_comment
+FROM comments c
+INNER JOIN users u ON c.user_id = u.id
+LEFT JOIN comments pc ON c.parent_comment_id = pc.id
+WHERE c.post_id = 123
+ORDER BY c.created_at ASC;
+```
+
+# ⚡ Indexes & Query Optimization
+
+## What is an Index and Why It Improves Query Speed
+
+**Explanation:** An index is a data structure that improves the speed of data retrieval operations on a database table. It works like a book index - instead of scanning every page, you can quickly find what you need.
+
+```sql
+-- Creating basic indexes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_comments_user_post ON comments(user_id, post_id);
+
+-- How indexes help:
+-- Without index: Full table scan (slow for large tables)
+-- With index: Direct lookup (fast)
+```
+
+## B-tree Index (Default)
+
+**Explanation:** B-tree (Balanced Tree) is the most common index type. It keeps data sorted and allows searches, sequential access, inserts, and deletes in logarithmic time.
+
+```sql
+-- B-tree is default, so these are equivalent:
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_email ON users USING BTREE (email);
+
+-- When B-tree helps:
+-- =, <, >, <=, >=, BETWEEN, IN
+-- LIKE 'prefix%' (but not '%suffix')
+-- ORDER BY queries
+```
+
+## When Indexes Don't Help
+
+### **1. Small Tables**
+```sql
+-- Tables with few rows (less than 100-1000 rows)
+-- Index overhead may outweigh benefits
+CREATE TABLE config (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(100) UNIQUE,
+    value TEXT
+); -- Primary key index is enough, no need for additional indexes
+```
+
+### **2. Low Selectivity Columns**
+```sql
+-- Columns with few unique values
+CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    gender CHAR(1),  -- Only 'M', 'F', 'O' - low selectivity
+    is_active BOOLEAN  -- Only true/false - very low selectivity
+);
+
+-- Index on gender or is_active won't help much
+-- They filter out too few rows to be worth the index
+```
+
+### **3. Wildcard Searches with Leading %**
+```sql
+-- These CAN use index (if available):
+SELECT * FROM users WHERE email LIKE 'john%';
+SELECT * FROM users WHERE email LIKE 'john%@gmail.com';
+
+-- These CANNOT use index effectively:
+SELECT * FROM users WHERE email LIKE '%john';
+SELECT * FROM users WHERE email LIKE '%john%';
+```
+
+### **4. Table Scans Are Faster**
+```sql
+-- When query returns large percentage of table
+SELECT * FROM users WHERE created_at > '2020-01-01'; 
+-- If 80% of users created after 2020, index won't help
+```
+
+## EXPLAIN and EXPLAIN ANALYZE Basics
+
+### **EXPLAIN** - Query Plan Without Execution
+```sql
+-- See the query execution plan
+EXPLAIN SELECT * FROM users WHERE email = 'john@example.com';
+
+-- Output example:
+-- Index Scan using idx_users_email on users  (cost=0.14..8.16 rows=1 width=64)
+--   Index Cond: (email = 'john@example.com'::text)
+```
+
+### **EXPLAIN ANALYZE** - Query Plan With Actual Execution
+```sql
+-- Execute query and show actual performance
+EXPLAIN ANALYZE 
+SELECT * FROM posts 
+WHERE user_id = 123 AND created_at > '2024-01-01';
+
+-- Output shows actual time and row counts:
+-- Index Scan using idx_posts_user_date on posts  (cost=0.29..8.31 rows=1 width=64)
+--   Index Cond: ((user_id = 123) AND (created_at > '2024-01-01'::date))
+-- Actual time: 0.045..0.046 rows=5 loops=1
+```
+
+### **Reading EXPLAIN Output:**
+- **Seq Scan**: Full table scan (may be slow for large tables)
+- **Index Scan**: Using index to find rows
+- **Index Only Scan**: Best case - gets all data from index
+- **Nested Loop**: Join method for small datasets
+- **Hash Join**: Join method for larger datasets
+- **Sort**: Indicates ORDER BY operations
+
+## Avoiding SELECT *
+
+**Why avoid SELECT \*:**
+1. **Unnecessary Data Transfer**: Retrieves unused columns
+2. **Index Inefficiency**: May prevent index-only scans
+3. **Breaking Changes**: Schema changes break application
+4. **Network Overhead**: More data transferred
+
+```sql
+-- ❌ DON'T
+SELECT * FROM users WHERE email = 'john@example.com';
+
+-- ✅ DO
+SELECT id, username, email FROM users WHERE email = 'john@example.com';
+
+-- ✅ Even better for joins
+SELECT 
+    u.username,
+    p.title,
+    p.created_at
+FROM users u
+INNER JOIN posts p ON u.id = p.user_id
+WHERE u.id = 123;
+```
+
+## 👉 **Typical Interview Question Solution:**
+
+**Problem:** "How do you find why a query is slow and how to optimize it?"
+
+### **Step-by-Step Optimization Process:**
+
+```sql
+-- 1. Start with EXPLAIN ANALYZE
+EXPLAIN ANALYZE 
+SELECT u.username, p.title, c.content
+FROM users u
+INNER JOIN posts p ON u.id = p.user_id
+LEFT JOIN comments c ON p.id = c.post_id
+WHERE u.created_at > '2024-01-01'
+ORDER BY p.created_at DESC
+LIMIT 100;
+
+-- 2. Look for warning signs:
+-- - Sequential scans on large tables
+-- - Expensive sort operations
+-- - Nested loops with large datasets
+-- - Missing indexes
+
+-- 3. Check if indexes exist and are used
+SELECT * FROM pg_indexes WHERE tablename IN ('users', 'posts', 'comments');
+
+-- 4. Add missing indexes based on WHERE, JOIN, ORDER BY clauses
+CREATE INDEX CONCURRENTLY idx_users_created_at ON users(created_at);
+CREATE INDEX CONCURRENTLY idx_posts_user_created ON posts(user_id, created_at);
+CREATE INDEX CONCURRENTLY idx_comments_post_id ON comments(post_id);
+
+-- 5. Rewrite query if needed
+-- Original slow query might be doing unnecessary work
+
+-- 6. Verify improvement
+EXPLAIN ANALYZE 
+SELECT u.username, p.title, c.content
+FROM users u
+INNER JOIN posts p ON u.id = p.user_id
+LEFT JOIN comments c ON p.id = c.post_id
+WHERE u.created_at > '2024-01-01'
+ORDER BY p.created_at DESC
+LIMIT 100;
+```
+
+### **Common Optimization Patterns:**
+
+```sql
+-- Pattern 1: Add composite indexes for common query patterns
+CREATE INDEX idx_posts_user_status_date ON posts(user_id, status, created_at);
+
+-- Pattern 2: Covering indexes for frequent queries
+CREATE INDEX idx_users_covering ON users(id, username, email, created_at);
+
+-- Pattern 3: Partial indexes for filtered queries
+CREATE INDEX idx_active_users ON users(id) WHERE is_active = true;
+
+-- Pattern 4: Expression indexes for function-based queries
+CREATE INDEX idx_users_lower_email ON users(LOWER(email));
+
+-- Pattern 5: Monitor and remove unused indexes
+SELECT * FROM pg_stat_user_indexes WHERE idx_scan = 0;  -- Never used indexes
+```
+
+### **Complete Optimization Example:**
+```sql
+-- Slow query reported by users
+EXPLAIN ANALYZE 
+SELECT u.username, COUNT(p.id) as post_count
+FROM users u
+LEFT JOIN posts p ON u.id = p.user_id
+WHERE u.created_at BETWEEN '2023-01-01' AND '2024-01-01'
+  AND p.status = 'published'
+  AND p.created_at > '2023-06-01'
+GROUP BY u.id, u.username
+HAVING COUNT(p.id) > 5
+ORDER BY post_count DESC;
+
+-- Optimization steps:
+-- 1. Add missing indexes
+CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX idx_posts_user_status_date ON posts(user_id, status, created_at);
+
+-- 2. Consider a better query structure
+SELECT u.username, p.post_count
+FROM users u
+INNER JOIN (
+    SELECT user_id, COUNT(*) as post_count
+    FROM posts 
+    WHERE status = 'published' 
+      AND created_at > '2023-06-01'
+    GROUP BY user_id
+    HAVING COUNT(*) > 5
+) p ON u.id = p.user_id
+WHERE u.created_at BETWEEN '2023-01-01' AND '2024-01-01'
+ORDER BY p.post_count DESC;
+```
+
+## Key Performance Takeaways
+
+1. **Index strategically** - not every column needs an index
+2. **Use EXPLAIN ANALYZE** to understand query performance
+3. **Avoid SELECT *** - specify only needed columns
+4. **Composite indexes** for common query patterns
+5. **Monitor index usage** and remove unused indexes
+6. **Consider query structure** - sometimes rewriting helps more than indexing
+
+
+---
+
+
