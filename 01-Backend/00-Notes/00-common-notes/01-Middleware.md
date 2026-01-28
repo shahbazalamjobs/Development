@@ -1,5 +1,6 @@
 
-All examples use **ES modules (`import`)** and **Express**.
+Other Notes: https://blog.webdevsimplified.com/2019-12/express-middleware-in-depth/
+
 
 ---
 
