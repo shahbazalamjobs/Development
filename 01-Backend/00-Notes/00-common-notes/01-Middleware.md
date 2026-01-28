@@ -1,6 +1,3 @@
-Perfect 👍
-I’ll give you **middleware code examples from BASIC → ADVANCED**, exactly how backend devs grow.
-Each example includes **what it does, when to use it, and the code**.
 
 All examples use **ES modules (`import`)** and **Express**.
 
