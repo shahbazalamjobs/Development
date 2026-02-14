@@ -4,11 +4,6 @@ https://expressjs.com/en/guide/error-handling.html
 
 ---
 
-Perfect 👌 Alex — I’ll explain this in **Pareto style (20% concepts → 80% clarity)**, simple points + small code.
-
-We’ll focus only on what really matters.
-
----
 
 # 🚀 1️⃣ The 20% That Gives 80% Understanding
 
